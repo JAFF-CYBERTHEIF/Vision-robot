@@ -116,3 +116,61 @@ rotate_pwm.stop()
 
 #Clean up the GPIO pins
 GPIO.cleanup()
+
+
+
+
+
+
+
+
+import pygame
+import RPi.GPIO as GPIO
+import time
+
+# Set up GPIO pins for the two servo motors
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(11, GPIO.OUT)
+GPIO.setup(13, GPIO.OUT)
+pwm_base = GPIO.PWM(11, 50)
+pwm_arm = GPIO.PWM(13, 50)
+
+# Start the PWM signals for the two servo motors
+pwm_base.start(7.5)
+pwm_arm.start(7.5)
+
+# Initialize pygame joystick module
+pygame.joystick.init()
+joysticks = [pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count())]
+
+try:
+    while True:
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.JOYAXISMOTION:
+                # Get axis values from joysticks
+                axis_0 = joysticks[0].get_axis(0)
+                axis_1 = joysticks[0].get_axis(1)
+                axis_2 = joysticks[1].get_axis(1)
+                
+                # Control the servo motors based on joystick axis values
+                base_angle = 90 + int(axis_0 * 45)
+                arm_angle = 90 + int(axis_1 * 45)
+                
+                pwm_base.ChangeDutyCycle(2.5 + 10 * base_angle / 180)
+                pwm_arm.ChangeDutyCycle(2.5 + 10 * arm_angle / 180)
+                
+        time.sleep(0.01)
+
+except KeyboardInterrupt:
+    pass
+
+# Stop the PWM signals for the two servo motors
+pwm_base.stop()
+pwm_arm.stop()
+
+# Clean up the GPIO pins
+GPIO.cleanup()
+
+# Quit pygame
+pygame.quit()
